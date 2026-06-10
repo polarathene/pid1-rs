@@ -14,10 +14,10 @@ use std::{error::Error, ffi::OsString, path::PathBuf};
 
 #[derive(Parser, Debug, PartialEq)]
 pub(crate) struct Pid1App {
-    /// Specify working direcory
+    /// Specify working directory
     #[arg(short, long, value_name = "DIR")]
     pub(crate) workdir: Option<PathBuf>,
-    /// Timeout (in seconds) to wait for child proess to exit
+    /// Timeout (in seconds) to wait for child process to exit
     #[arg(short, long, value_name = "TIMEOUT", default_value_t = 2)]
     pub(crate) timeout: u8,
     /// Turn on verbose output
