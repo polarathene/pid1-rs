@@ -23,7 +23,7 @@ pub(crate) struct Pid1App {
     pub(crate) timeout: u8,
 
     /// Turn on verbose output
-    #[arg(short, long, default_value_t = false)]
+    #[arg(short, long)]
     pub(crate) verbose: bool,
 
     /// Override environment variables. Can specify multiple times.
@@ -32,18 +32,16 @@ pub(crate) struct Pid1App {
 
     /// Run command with user ID
     #[arg(short, long, value_name = "USER_ID")]
-    user_id: Option<u32>,
+    pub(crate) user_id: Option<u32>,
 
     /// Run command with group ID
     #[arg(short, long, value_name = "GROUP_ID")]
-    group_id: Option<u32>,
+    pub(crate) group_id: Option<u32>,
 
     /// Process to run
-    #[arg(required = true)]
     pub(crate) command: String,
 
     /// Arguments to the process
-    #[arg(required = false)]
     pub(crate) args: Vec<String>,
 }
 
