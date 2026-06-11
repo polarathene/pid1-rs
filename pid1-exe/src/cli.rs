@@ -1,4 +1,3 @@
-use clap::Parser;
 #[cfg(target_family = "unix")]
 use pid1::Pid1Settings;
 #[cfg(target_family = "unix")]
@@ -12,15 +11,15 @@ use std::os::unix::process::CommandExt;
 use std::time::Duration;
 use std::{str::FromStr, ffi::OsString, path::PathBuf};
 
-#[derive(Parser, Debug, PartialEq)]
+#[derive(clap::Parser, Debug, PartialEq)]
 #[command(version, about, long_about = None)]
 pub(crate) struct Pid1App {
     /// Specify working directory
     #[arg(short, long, value_name = "DIR")]
     pub(crate) workdir: Option<PathBuf>,
 
-    /// Timeout (in seconds) to wait for child process to exit
-    #[arg(short, long, value_name = "TIMEOUT", default_value_t = 2)]
+    /// Grace period for stopping before escalating to SIGKILL
+    #[arg(short, long, value_name = "SECONDS", default_value_t = 2)]
     pub(crate) timeout: u8,
 
     /// Turn on verbose output
@@ -32,18 +31,18 @@ pub(crate) struct Pid1App {
     pub(crate) env: Vec<KeyValue>,
 
     /// Run command with user ID
-    #[arg(short, long, value_name = "USER_ID")]
+    #[arg(short, long, value_name = "USER ID")]
     pub(crate) user_id: Option<u32>,
 
     /// Run command with group ID
-    #[arg(short, long, value_name = "GROUP_ID")]
+    #[arg(short, long, value_name = "GROUP ID")]
     pub(crate) group_id: Option<u32>,
 
     /// Process to run
     #[arg(trailing_var_arg = true)]
     pub(crate) command: String,
 
-    /// Arguments to the process
+    /// Arguments to that process
     pub(crate) args: Vec<String>,
 }
 
