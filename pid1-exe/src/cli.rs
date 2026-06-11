@@ -1,13 +1,9 @@
-#[cfg(target_family = "unix")]
 use pid1::Pid1Settings;
-#[cfg(target_family = "unix")]
 use signal_hook::{
     consts::{SIGCHLD, SIGINT, SIGTERM},
     iterator::Signals,
 };
-#[cfg(target_family = "unix")]
 use std::os::unix::process::CommandExt;
-#[cfg(target_family = "unix")]
 use std::time::Duration;
 use std::{str::FromStr, ffi::OsString, path::PathBuf};
 
@@ -47,10 +43,10 @@ pub(crate) struct Pid1App {
 }
 
 impl Pid1App {
-    #[cfg(target_family = "unix")]
     pub(crate) fn run(self) -> ! {
         let mut child = std::process::Command::new(&self.command);
         let child = child.args(&self.args[..]);
+
         if let Some(workdir) = &self.workdir {
             child.current_dir(workdir);
         }
@@ -63,6 +59,7 @@ impl Pid1App {
         for KeyValue(key, value) in &self.env {
             child.env(key, value);
         }
+
         let pid = std::process::id();
         if pid != 1 {
             let status = child.exec();
@@ -86,12 +83,6 @@ impl Pid1App {
                 .timeout(Duration::from_secs(self.timeout.into()))
                 .pid1_handling(signals, child)
         }
-    }
-
-    #[cfg(target_family = "windows")]
-    pub(crate) fn run(self) -> ! {
-        eprintln!("pid1: Not supported on Windows");
-        std::process::exit(1);
     }
 }
 

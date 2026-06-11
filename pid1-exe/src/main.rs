@@ -1,3 +1,4 @@
+#[cfg(target_family = "unix")]
 mod cli;
 
 use clap::Parser;
