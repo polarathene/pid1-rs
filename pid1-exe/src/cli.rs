@@ -44,45 +44,44 @@ pub(crate) struct Pid1App {
 
 impl Pid1App {
     pub(crate) fn run(self) -> ! {
-        let mut child = std::process::Command::new(&self.command);
-        let child = child.args(&self.args[..]);
+        let mut cmd = std::process::Command::new(&self.command);
+        cmd.args(&self.args);
 
         if let Some(workdir) = &self.workdir {
-            child.current_dir(workdir);
+            cmd.current_dir(workdir);
         }
         if let Some(user_id) = &self.user_id {
-            child.uid(*user_id);
+            cmd.uid(*user_id);
         }
         if let Some(group_id) = &self.group_id {
-            child.gid(*group_id);
+            cmd.gid(*group_id);
         }
         for KeyValue(key, value) in &self.env {
-            child.env(key, value);
+            cmd.env(key, value);
         }
 
         let pid = std::process::id();
         if pid != 1 {
-            let status = child.exec();
+            let status = cmd.exec();
             eprintln!("execvp failed with: {status:?}");
 
             std::process::exit(1);
-        } else {
-            // Install signal handlers before launching child process
-            let signals = Signals::new([SIGTERM, SIGINT, SIGCHLD]).unwrap();
-            let child = child.spawn();
-            let child = match child {
-                Ok(child) => child,
-                Err(err) => {
-                    eprintln!("pid1: {} spawn failed. Got error: {err}", self.command);
-                    std::process::exit(1);
-                }
-            };
-
-            Pid1Settings::new()
-                .enable_log(self.verbose)
-                .timeout(Duration::from_secs(self.timeout.into()))
-                .pid1_handling(signals, child)
         }
+
+        // CRITICAL: Install signal handlers BEFORE spawning the child.
+        // This prevents a race condition where a fast-failing child sends SIGCHLD 
+        // before we are ready to catch and reap it, creating zombie processes.
+        let signals = Signals::new([SIGTERM, SIGINT, SIGCHLD]).unwrap();
+
+        let child = cmd.spawn().unwrap_or_else(|err| {
+            eprintln!("pid1: {} spawn failed. Got error: {err}", self.command);
+            std::process::exit(1);
+        });
+
+        Pid1Settings::new()
+            .enable_log(self.verbose)
+            .timeout(Duration::from_secs(self.timeout.into()))
+            .pid1_handling(signals, child)
     }
 }
 
