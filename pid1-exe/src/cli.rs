@@ -40,6 +40,7 @@ pub(crate) struct Pid1App {
     pub(crate) group_id: Option<u32>,
 
     /// Process to run
+    #[arg(trailing_var_arg = true)]
     pub(crate) command: String,
 
     /// Arguments to the process
