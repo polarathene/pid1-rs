@@ -13,6 +13,7 @@ use std::time::Duration;
 use std::{error::Error, ffi::OsString, path::PathBuf};
 
 #[derive(Parser, Debug, PartialEq)]
+#[command(version, about, long_about = None)]
 pub(crate) struct Pid1App {
     /// Specify working directory
     #[arg(short, long, value_name = "DIR")]

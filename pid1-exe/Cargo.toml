@@ -2,14 +2,13 @@
 name = "pid1-exe"
 version = "0.1.6"
 edition = "2021"
-description = "pid1 handling library for proper signal and zombie reaping of the PID1 process"
+description = "A Unix PID1 process wrapper for signal handling and zombie reaping"
 readme = "../README.md"
 homepage = "https://github.com/fpco/pid1-rs"
 repository = "https://github.com/fpco/pid1-rs"
 license = "MIT"
 keywords = ["cli", "init", "pid1", "process"]
 categories = ["command-line-utilities"]
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
 name = "pid1"
