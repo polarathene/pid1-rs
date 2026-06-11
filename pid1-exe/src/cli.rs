@@ -10,7 +10,7 @@ use signal_hook::{
 use std::os::unix::process::CommandExt;
 #[cfg(target_family = "unix")]
 use std::time::Duration;
-use std::{error::Error, ffi::OsString, path::PathBuf};
+use std::{str::FromStr, ffi::OsString, path::PathBuf};
 
 #[derive(Parser, Debug, PartialEq)]
 #[command(version, about, long_about = None)]
@@ -28,8 +28,8 @@ pub(crate) struct Pid1App {
     pub(crate) verbose: bool,
 
     /// Override environment variables. Can specify multiple times.
-    #[arg(short, long, value_parser=parse_key_val::<OsString, OsString>)]
-    pub(crate) env: Vec<(OsString, OsString)>,
+    #[arg(short, long, value_name = "KEY=VALUE")]
+    pub(crate) env: Vec<KeyValue>,
 
     /// Run command with user ID
     #[arg(short, long, value_name = "USER_ID")]
@@ -61,7 +61,7 @@ impl Pid1App {
         if let Some(group_id) = &self.group_id {
             child.gid(*group_id);
         }
-        for (key, value) in &self.env {
+        for KeyValue(key, value) in &self.env {
             child.env(key, value);
         }
         let pid = std::process::id();
@@ -96,16 +96,18 @@ impl Pid1App {
     }
 }
 
-/// Parse a single key-value pair
-fn parse_key_val<T, U>(s: &str) -> Result<(T, U), Box<dyn Error + Send + Sync + 'static>>
-where
-    T: std::str::FromStr,
-    T::Err: Error + Send + Sync + 'static,
-    U: std::str::FromStr,
-    U::Err: Error + Send + Sync + 'static,
-{
-    let pos = s
-        .find('=')
-        .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{s}`"))?;
-    Ok((s[..pos].parse()?, s[pos + 1..].parse()?))
+/// A CLI argument parsed from a `KEY=VALUE` pair.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct KeyValue(OsString, OsString);
+
+impl FromStr for KeyValue {
+    type Err = String;
+
+    /// Parses a CLI flag value into a [`KeyValue`] type.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (key, value) = s.split_once('=')
+          .ok_or_else(|| format!("invalid `KEY=VALUE` pair: no `=` found in `{s}`"))?;
+
+        Ok(KeyValue(key.into(), value.into()))
+    }
 }
