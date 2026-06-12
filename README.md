@@ -109,22 +109,25 @@ CMD [ "your-application", "--arg1" ]
 
 The `pid1` binary supports various command-line options:
 
-``` shellsession
+```shellsession
 ❯ pid1 --help
-Usage:
+A Unix PID1 process wrapper for signal handling and zombie reaping
+
+Usage: pid1 [OPTIONS] <COMMAND> [ARGS]...
 
 Arguments:
   <COMMAND>  Process to run
-  [ARGS]...  Arguments to the process
+  [ARGS]...  Arguments to that process
 
 Options:
-  -w, --workdir <DIR>        Specify working direcory
-  -t, --timeout <TIMEOUT>    Timeout (in seconds) to wait for child proess to exit [default: 2]
+  -w, --workdir <DIR>        Specify working directory
+  -t, --timeout <SECONDS>    Grace period for stopping before escalating to SIGKILL [default: 2]
   -v, --verbose              Turn on verbose output
-  -e, --env <ENV>            Override environment variables. Can specify multiple times
-  -u, --user-id <USER_ID>    Run command with user ID
-  -g, --group-id <GROUP_ID>  Run command with group ID
+  -e, --env <KEY=VALUE>      Override environment variables. Can specify multiple times
+  -u, --user-id <USER ID>    Run command with user ID
+  -g, --group-id <GROUP ID>  Run command with group ID
   -h, --help                 Print help
+  -V, --version              Print version
 ```
 
 ---
