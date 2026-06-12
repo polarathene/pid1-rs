@@ -43,6 +43,12 @@ pub(crate) struct Pid1App {
 }
 
 impl Pid1App {
+    /// Parses CLI arguments from the environment.
+    pub(crate) fn from_cli() -> Self {
+      use clap::Parser;
+      Self::parse()
+    }
+
     pub(crate) fn run(self) -> ! {
         let mut cmd = std::process::Command::new(&self.command);
         cmd.args(&self.args);
