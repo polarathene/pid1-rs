@@ -17,14 +17,13 @@ The [`pid1/examples` directory](./pid1/examples) contains several programs used 
 
   ```console
   $ just exec-shell
-  $ docker exec -it pid1rs sh
 
+  # docker exec -it pid1rs sh
   $ ps aux
   PID   USER     TIME  COMMAND
       1 root      0:05 /simple
       7 root      0:00 /simple
       8 root      0:00 sh
-    14 root      0:00 [date]
     15 root      0:00 ps aux
   ```
 
@@ -35,20 +34,17 @@ The [`pid1/examples` directory](./pid1/examples) contains several programs used 
 ```console
 $ just test
 
-$ docker run --name pid1rs pid1rstest
+# docker run --rm --name pid1rs pid1rstest
 pid1-rs: Process running as PID 1
-pid1-rs: Process not running as Pid 1: PID 7
 In the simple process, going to sleep. Process ID is 7
 Args: ["/simple"]
-Wed Sep 27 08:29:35 UTC 2023
-Wed Sep 27 08:29:37 UTC 2023
-Wed Sep 27 08:29:39 UTC 2023
+pid1-rs: Reaped PID 7
 ```
 
 Ensure that the process exits with a status code of `0`. The test above confirms the following:
 
 - The `simple` program was executed as PID 1.
-- It relaunched itself as PID 7, which then executed various child processes.
+- It relaunched itself as PID 7, before exiting and was then reaped.
 
 ## Zombie process
 
@@ -56,19 +52,12 @@ Ensure that the process exits with a status code of `0`. The test above confirms
 
     ```console
     $ just run-image
-    $ docker rm pid1rs || exit 0
-    pid1rs
 
-    $ docker run --name pid1rs pid1rstest /simple --sleep
+    # docker run --rm --name pid1rs pid1rstest /simple --sleep 20
     pid1-rs: Process running as PID 1
-    pid1-rs: Process not running as Pid 1: PID 7
     In the simple process, going to sleep. Process ID is 7
-    Args: ["/simple", "--sleep"]
-    Wed Sep 27 08:34:57 UTC 2023
-    Wed Sep 27 08:34:59 UTC 2023
-    Wed Sep 27 08:35:01 UTC 2023
-    Going to sleep 500 seconds
-    Wed Sep 27 08:35:03 UTC 2023
+    Args: ["/simple", "--sleep", "20"]
+    Going to sleep 20 seconds
     ```
 
 2. While it's executing, open a new shell and run the recipe to create a zombie process:
@@ -76,7 +65,7 @@ Ensure that the process exits with a status code of `0`. The test above confirms
     ```console
     $ just run-zombie
 
-    $ docker exec pid1rs zombie
+    # docker exec pid1rs zombie
     Process ID is 9
     Parent process: going to sleep and exit
     ```
@@ -84,54 +73,47 @@ Ensure that the process exits with a status code of `0`. The test above confirms
 3. You should see the following logs from the `simple` process, indicating that a process has been reaped:
 
     ```console
-    Wed Sep 27 09:40:56 UTC 2023
-    Reaped pid: 15
+    Reaped PID: 15
     ```
 
 ## Child Exit code status propagation
 
-1. Run the `run-image` recipe:
+1. Run the `run-orphans` recipe:
 
     ```console
     $ just run-image
-    $ docker rm pid1rs || exit 0
-    pid1rs
 
-    $ docker run --name pid1rs pid1rstest /simple --sleep
+    # docker run --rm --name pid1rs pid1rstest /simple --sleep 20 --create-grandchildren
     pid1-rs: Process running as PID 1
-    pid1-rs: Process not running as Pid 1: PID 7
     In the simple process, going to sleep. Process ID is 7
-    Args: ["/simple", "--sleep"]
-    Wed Sep 27 08:34:57 UTC 2023
-    Wed Sep 27 08:34:59 UTC 2023
-    Wed Sep 27 08:35:01 UTC 2023
-    Going to sleep 500 seconds
-    Wed Sep 27 08:35:03 UTC 2023
+    Args: ["/simple", "--sleep", "20", "--create-grandchildren"]
+    Spawning 3 grandchildren processes that will be orphaned.
+    Going to sleep 20 seconds
     ```
 
 2. Run the `exec-shell` recipe and perform the test:
 
     ```console
     $ just exec-shell
-    $ docker exec -it pid1rs sh
+
+    # docker exec -it pid1rs sh
     $ ps -aux
     USER         PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-    root           1  0.0  0.0    996     4 pts/0    Ss+  12:34   0:00 /simple --sleep
-    root           7  0.0  0.0    976     4 pts/0    S+   12:34   0:00 /simple --sleep
-    root           8  0.0  0.0      0     0 pts/0    Z+   12:34   0:00 [date] <defunct>
-    root           9  0.0  0.0   1672  1048 pts/1    Ss   12:34   0:00 sh
-    root          14  0.0  0.0      0     0 pts/0    Z+   12:34   0:00 [date] <defunct>
-    root          15  0.0  0.0      0     0 pts/0    Z+   12:34   0:00 [date] <defunct>
-    root          16  0.0  0.0      0     0 pts/0    Z+   12:34   0:00 [date] <defunct>
-    root          17  0.0  0.0   2460  1608 pts/1    R+   12:34   0:00 ps -aux
+    root           1  0.8  0.0   1048   756 ?        Ss   10:11   0:00 /simple --sleep 20 --create-grandchildren
+    root           7  0.0  0.0   1040   860 ?        S    10:11   0:00 /simple --sleep 20 --create-grandchildren
+    root           8  0.0  0.0      0     0 ?        Z    10:11   0:00 [sleep] <defunct>
+    root           9  0.0  0.0      0     0 ?        Z    10:11   0:00 [sleep] <defunct>
+    root          10  0.0  0.0      0     0 ?        Z    10:11   0:00 [sleep] <defunct>
+    root          11  0.3  0.1   2900  1888 pts/0    Ss   10:11   0:00 sh
+    root          17  0.0  0.1   7072  3068 pts/0    R+   10:11   0:00 ps -aux
 
     $ kill -12 7
     ```
 
-3. Check the logs of the `run-image` recipe to find the exit status code:
+3. Check the logs of the `run-orphans` recipe to find the exit status code:
 
     ```console
-    error: Recipe `run-image` failed on line 21 with exit code 140
+    error: Recipe `run-orphans` failed on line 21 with exit code 140
     ```
 
     The exit code 140 is correct (128 + 12).
@@ -149,12 +131,9 @@ These are the signal codes:
 
     ```console
     $ just sigterm-test
-    $ docker rm pid1rs || exit 0
-    pid1rs
 
-    $ docker run --name pid1rs pid1rstest sigterm_handler
+    # docker run --rm --name pid1rs pid1rstest sigterm_handler
     pid1-rs: Process running as PID 1
-    pid1-rs: Process not running as Pid 1: PID 7
     This APP can be killed by SIGTERM (15)
     ```
 
@@ -182,12 +161,9 @@ This library should be able to forcibly kill such processes.
 
     ```console
     $ just sigloop-test
-    $ docker rm pid1rs || exit 0
-    pid1rs
 
-    $ docker run --name pid1rs pid1rstest sigterm_loop
+    # docker run --rm --name pid1rs pid1rstest sigterm_loop
     pid1-rs: Process running as PID 1
-    pid1-rs: Process not running as Pid 1: PID 7
     This APP ignores SIGTERM (15)
     ```
 

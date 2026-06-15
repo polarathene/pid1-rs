@@ -15,12 +15,15 @@ build-image:
 	cp ../target/x86_64-unknown-linux-musl/debug/examples/sigterm_handler etc
 	cp ../target/x86_64-unknown-linux-musl/debug/examples/sigterm_loop etc
 	cp ../target/x86_64-unknown-linux-musl/debug/examples/dumb_shell etc
-	docker build etc -f etc/Dockerfile --tag pid1rstest
+	docker build --tag pid1rstest ./etc/
 
 # Run test image
 run-image:
-	docker rm pid1rs || exit 0
-	docker run --name pid1rs pid1rstest /simple --sleep 20
+	docker run --rm --name pid1rs pid1rstest /simple --sleep 20
+
+# Run orphans image
+run-orphans:
+	docker run --rm --name pid1rs pid1rstest /simple --sleep 20 --create-grandchildren
 
 # Run zombie in the container
 run-zombie:
@@ -28,14 +31,12 @@ run-zombie:
 
 # Test
 test: build-image
-	docker rm pid1rs || exit 0
-	docker run --name pid1rs pid1rstest
+	docker run --rm --name pid1rs pid1rstest
 	cargo test
 
 # Run SIGTERM test
 sigterm-test:
-	docker rm pid1rs || exit 0
-	docker run --name pid1rs pid1rstest sigterm_handler
+	docker run --rm --name pid1rs pid1rstest sigterm_handler
 
 # Send SIGTERM to container
 send-sigterm:
@@ -43,8 +44,7 @@ send-sigterm:
 
 # Run SIGTERM loop test
 sigloop-test:
-	docker rm pid1rs || exit 0
-	docker run --name pid1rs pid1rstest sigterm_loop
+	docker run --rm --name pid1rs pid1rstest sigterm_loop
 
 # Exec into the `pid1rs` docker container
 exec-shell:
