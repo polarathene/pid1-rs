@@ -18,7 +18,6 @@ impl Container {
                 "run",
                 "--name",
                 self.name.as_str(),
-                "-t",
                 self.image.as_str(),
             ])
             .output()
@@ -31,7 +30,7 @@ impl Container {
 
 impl Drop for Container {
     fn drop(&mut self) {
-        // Use rm -f to stop and remove the container. This is robust
+        // Use `rm -f` to stop and remove the container. This is robust
         // and ensures cleanup even if tests fail to stop the container.
         let output = Command::new("docker")
             .args(["rm", "-f", self.name.as_str()])
@@ -72,7 +71,6 @@ fn reaps_zombie_process() {
                 "run",
                 "--name",
                 container.name.as_str(),
-                "-t",
                 container.image.as_str(),
                 "/simple",
                 "--sleep",
@@ -85,7 +83,7 @@ fn reaps_zombie_process() {
 
         let zombie_result = s.spawn(|| {
             let zombie_output = container
-                .plain_run(&["exec", "-t", container.name.as_str(), "zombie"])
+                .plain_run(&["exec", container.name.as_str(), "zombie"])
                 .unwrap();
             zombie_output
         });
@@ -117,7 +115,6 @@ fn child_process_status_code() {
                 "run",
                 "--name",
                 container.name.as_str(),
-                "-t",
                 container.image.as_str(),
                 "/simple",
                 "--sleep",
@@ -144,7 +141,6 @@ fn child_process_status_code() {
             container
                 .plain_run(&[
                     "exec",
-                    "-t",
                     container.name.as_str(),
                     "kill",
                     "-12",
@@ -174,7 +170,6 @@ fn sigterm_handling() {
                 "run",
                 "--name",
                 container.name.as_str(),
-                "-t",
                 container.image.as_str(),
                 "sigterm_handler",
             ]);
@@ -184,7 +179,7 @@ fn sigterm_handling() {
         let kill_result = s.spawn(|| {
             std::thread::sleep(Duration::from_secs(2));
             container
-                .plain_run(&["exec", "-t", container.name.as_str(), "kill", "1"])
+                .plain_run(&["exec", container.name.as_str(), "kill", "1"])
                 .unwrap()
         });
 
@@ -210,7 +205,6 @@ fn sigterm_ignore() {
                 "run",
                 "--name",
                 container.name.as_str(),
-                "-t",
                 container.image.as_str(),
                 "sigterm_loop",
             ]);
@@ -220,7 +214,7 @@ fn sigterm_ignore() {
         let kill_result = s.spawn(|| {
             std::thread::sleep(Duration::from_secs(2));
             container
-                .plain_run(&["exec", "-t", container.name.as_str(), "kill", "1"])
+                .plain_run(&["exec", container.name.as_str(), "kill", "1"])
                 .unwrap()
         });
 
@@ -261,7 +255,6 @@ fn reaps_multiple_zombie_processes() {
                     "run",
                     "--name",
                     container.name.as_str(),
-                    "-t",
                     container.image.as_str(),
                     "/simple",
                     "--sleep",
@@ -294,7 +287,6 @@ fn reaps_multiple_zombie_processes() {
         let zombie_check_output = container
             .plain_run(&[
                 "exec",
-                "-t",
                 container.name.as_str(),
                 "sh",
                 "-c",
@@ -351,7 +343,6 @@ fn reaps_orphaned_grandchildren() {
             "run",
             "--name",
             container.name.as_str(),
-            "-t",
             container.image.as_str(),
             "/simple",
             "--create-grandchildren",

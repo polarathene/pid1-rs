@@ -35,7 +35,7 @@ PID   USER     TIME  COMMAND
 ``` shellsession
 ❯ just test
 ...
-docker run --name pid1rs -t pid1rstest
+docker run --name pid1rs pid1rstest
 pid1-rs: Process running as PID 1
 pid1-rs: Process not running as Pid 1: PID 7
 In the simple process, going to sleep. Process ID is 7
@@ -58,7 +58,7 @@ confirms the following:
 ...
 docker rm pid1rs || exit 0
 pid1rs
-docker run --name pid1rs -t pid1rstest /simple --sleep
+docker run --name pid1rs pid1rstest /simple --sleep
 pid1-rs: Process running as PID 1
 pid1-rs: Process not running as Pid 1: PID 7
 In the simple process, going to sleep. Process ID is 7
@@ -75,7 +75,7 @@ zombie process:
 
 ``` shellsession
 ❯ just run-zombie
-docker exec -t pid1rs zombie
+docker exec pid1rs zombie
 Process ID is 9
 Parent process: going to sleep and exit
 ```
@@ -98,7 +98,7 @@ Reaped pid: 15
 ...
 docker rm pid1rs || exit 0
 pid1rs
-docker run --name pid1rs -t pid1rstest /simple --sleep
+docker run --name pid1rs pid1rstest /simple --sleep
 pid1-rs: Process running as PID 1
 pid1-rs: Process not running as Pid 1: PID 7
 In the simple process, going to sleep. Process ID is 7
@@ -154,7 +154,7 @@ Execute the recipe `sigterm-test`:
 ❯ just sigterm-test
 docker rm pid1rs || exit 0
 pid1rs
-docker run --name pid1rs -t pid1rstest sigterm_handler
+docker run --name pid1rs pid1rstest sigterm_handler
 pid1-rs: Process running as PID 1
 pid1-rs: Process not running as Pid 1: PID 7
 This APP can be killed by SIGTERM (15)
@@ -187,7 +187,7 @@ Execute the recipe `sigloop-test`:
 ❯ just sigloop-test
 docker rm pid1rs || exit 0
 pid1rs
-docker run --name pid1rs -t pid1rstest sigterm_loop
+docker run --name pid1rs pid1rstest sigterm_loop
 pid1-rs: Process running as PID 1
 pid1-rs: Process not running as Pid 1: PID 7
 This APP ignores SIGTERM (15)

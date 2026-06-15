@@ -20,32 +20,32 @@ build-image:
 # Run test image
 run-image:
 	docker rm pid1rs || exit 0
-	docker run --name pid1rs -t pid1rstest /simple --sleep 20
+	docker run --name pid1rs pid1rstest /simple --sleep 20
 
 # Run zombie in the container
 run-zombie:
-	docker exec -t pid1rs zombie
+	docker exec pid1rs zombie
 
 # Test
 test: build-image
 	docker rm pid1rs || exit 0
-	docker run --name pid1rs -t pid1rstest
+	docker run --name pid1rs pid1rstest
 	cargo test
 
 # Run SIGTERM test
 sigterm-test:
 	docker rm pid1rs || exit 0
-	docker run --name pid1rs -t pid1rstest sigterm_handler
+	docker run --name pid1rs pid1rstest sigterm_handler
 
 # Send SIGTERM to container
 send-sigterm:
-	docker exec -it pid1rs kill 1
+	docker exec pid1rs kill 1
 
 # Run SIGTERM loop test
 sigloop-test:
 	docker rm pid1rs || exit 0
-	docker run --name pid1rs -t pid1rstest sigterm_loop
+	docker run --name pid1rs pid1rstest sigterm_loop
 
-# Exec into that docker container
+# Exec into the `pid1rs` docker container
 exec-shell:
 	docker exec -it pid1rs bash
